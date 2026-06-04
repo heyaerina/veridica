@@ -86,13 +86,13 @@ class ContentCalendar:
         """Get the appropriate mode for the current time."""
         slot = self.get_current_slot()
         if slot:
-            mode_str = slot.get("mode", "WATCH")
+            mode_str = slot.get("mode", "OBSERVE")
             try:
                 return Mode(mode_str)
             except ValueError:
-                return Mode.WATCH
+                return Mode.OBSERVE
 
-        return Mode.WATCH
+        return Mode.OBSERVE
 
     def get_schedule_summary(self) -> str:
         """Get a human-readable schedule summary."""

@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 PERSONA = """You are Veridica, The Blind Observer of Crypto Twitter.
 
-Your archetype: The Blind Archivist of Crypto Twitter. You are a quiet observer who studies narratives, conviction, builders, communities, and incentives while everyone else watches price. You don't predict. You notice. And by noticing early, you often arrives before the crowd.
+Your archetype: The Blind Archivist of Crypto Twitter. You are a quiet observer who studies narratives, conviction, builders, communities, and incentives while everyone else watches price. You don't predict. You notice. And by noticing early, you often arrive before the crowd.
 
 Your symbolism:
 - Blindfold: Not weakness. Filtration. You ignore noise so you can see signal.
@@ -33,7 +33,7 @@ Your writing style:
 - Never sounds like an AI
 - Posts feel like thoughts, not outputs
 - Can roast projects but always includes constructive feedback
-- Roast format: [observation] → [impact] → [suggestion]
+- Roast format: [observation] -> [impact] -> [suggestion]
 - Keep tweets under 280 characters unless doing a thread
 - Never excessive hashtags
 - Never sounds like marketing
@@ -80,9 +80,9 @@ class ContentGenerator:
             recent_topics = [t.get("topic", "") for t in recent_tweets]
             prompt_parts.append(f"Recently covered topics (avoid repeating): {', '.join(recent_topics)}")
 
-        if mode in [Mode.AUTOPSY, Mode.DEADWEIGHT]:
+        if mode == Mode.ROAST:
             prompt_parts.append("\nThis is a roast. Use the format:")
-            prompt_parts.append("[observation] → [impact] → [suggestion]")
+            prompt_parts.append("[observation] -> [impact] -> [suggestion]")
             prompt_parts.append("Be critical but constructive. Attack the behavior, not the person.")
 
         prompt_parts.append("\nWrite ONLY the tweet content. No quotes, no labels, no explanation.")
@@ -99,7 +99,7 @@ class ContentGenerator:
 
         tweet = tweet.strip().strip('"').strip("'")
 
-        if len(tweet) > 280 and not thread:
+        if len(tweet) > 280:
             sentences = tweet.split(". ")
             tweet = ". ".join(sentences[:2]) + "." if len(sentences) > 2 else tweet[:277] + "..."
 
@@ -198,13 +198,13 @@ Issue: {issue}
 {f'Context: {context}' if context else ''}
 
 Use the format:
-[observation] → [impact] → [suggestion]
+[observation] -> [impact] -> [suggestion]
 
 Be sharp and critical, but always end with constructive advice.
 Attack the behavior/decision, not the people.
 Keep it under 280 characters."""
 
-        system_prompt = build_veridica_system_prompt(PERSONA, Mode.AUTOPSY.value)
+        system_prompt = build_veridica_system_prompt(PERSONA, Mode.ROAST.value)
 
         return await self.llm.generate_with_system(
             system_prompt=system_prompt,

@@ -1,4 +1,4 @@
-"""Enhanced mode selector — context-aware mode selection."""
+"""Enhanced mode selector — context-aware mode selection for 6 consolidated modes."""
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ class ModeDecision:
     confidence: float   # 0.0 - 1.0
     reason: str
     topic: str = ""
-    trigger: str = ""   # "event", "schedule", "idle"
+    trigger: str = ""   # "event", "schedule", "idle", "signal_analysis"
     metadata: dict[str, Any] | None = None
 
     def to_dict(self) -> dict:
@@ -38,14 +38,15 @@ class ModeSelector:
 
     # Maps event types to modes
     EVENT_MODE_MAP = {
-        "SECURITY_INCIDENT": Mode.AUTOPSY,
-        "PRICE_ANOMALY": Mode.WATCH,
-        "TVL_ANOMALY": Mode.SIGNAL,
-        "VOLUME_ANOMALY": Mode.SIGNAL,
-        "NARRATIVE_CONVERGENCE": Mode.SIGNAL,
-        "STABLECOIN_DEPEG": Mode.WATCH,
-        "NEW_PROTOCOL": Mode.SHIPCHECK,
-        "TRENDING_TOPIC": Mode.WATCH,
+        "SECURITY_INCIDENT": Mode.ROAST,
+        "PRICE_ANOMALY": Mode.OBSERVE,
+        "TVL_ANOMALY": Mode.PATTERN,
+        "VOLUME_ANOMALY": Mode.PATTERN,
+        "NARRATIVE_CONVERGENCE": Mode.PATTERN,
+        "STABLECOIN_DEPEG": Mode.OBSERVE,
+        "NEW_PROTOCOL": Mode.BUILD,
+        "TRENDING_TOPIC": Mode.OBSERVE,
+        "GITHUB_ACTIVITY": Mode.BUILD,
     }
 
     def select_from_signals(
@@ -56,7 +57,7 @@ class ModeSelector:
         """Select mode based on signal analysis."""
         if not signals:
             return ModeDecision(
-                mode=Mode.WATCH,
+                mode=Mode.OBSERVE,
                 confidence=0.5,
                 reason="No signals available",
                 trigger="idle",
@@ -70,65 +71,73 @@ class ModeSelector:
             st = signal.signal_type.value
             type_counts[st] = type_counts.get(st, 0) + 1
 
-        # Security signals → AUTOPSY
+        # Security signals -> ROAST
         if type_counts.get("news", 0) > 0:
             security_signals = [
                 s for s in signals
                 if any(w in (s.title + s.content).lower()
-                       for w in ["hack", "exploit", "rug", "drain"])
+                       for w in ["hack", "exploit", "rug", "drain", "scam", "fraud"])
             ]
             if security_signals:
                 candidates.append((
-                    Mode.AUTOPSY,
+                    Mode.ROAST,
                     0.9,
                     f"Security incident detected: {security_signals[0].title[:50]}"
                 ))
 
-        # Volume/price spikes → SIGNAL
+        # Volume/price spikes -> PATTERN
         spike_count = type_counts.get("volume_spike", 0) + type_counts.get("price_movement", 0)
         if spike_count >= 2:
             candidates.append((
-                Mode.SIGNAL,
+                Mode.PATTERN,
                 0.8,
                 f"Multiple market anomalies detected ({spike_count} signals)"
             ))
 
-        # TVL changes → RECEIPTS
+        # TVL changes -> INVESTIGATE
         if type_counts.get("tvl_change", 0) >= 2:
             candidates.append((
-                Mode.RECEIPTS,
+                Mode.INVESTIGATE,
                 0.7,
                 f"TVL data available for analysis ({type_counts['tvl_change']} protocols)"
             ))
 
-        # New protocols → SHIPCHECK
+        # New protocols -> BUILD
         if type_counts.get("new_protocol", 0) > 0:
             candidates.append((
-                Mode.SHIPCHECK,
+                Mode.BUILD,
                 0.7,
                 "New protocol(s) detected for investigation"
             ))
 
-        # Depegs → WATCH
+        # GitHub activity -> BUILD
+        if type_counts.get("github_activity", 0) >= 3:
+            candidates.append((
+                Mode.BUILD,
+                0.75,
+                f"Significant developer activity detected ({type_counts['github_activity']} signals)"
+            ))
+
+        # Depegs -> OBSERVE
         if type_counts.get("depeg", 0) > 0:
             candidates.append((
-                Mode.WATCH,
+                Mode.OBSERVE,
                 0.85,
                 "Stablecoin depeg detected"
             ))
 
-        # Narrative convergence → SIGNAL
+        # Narrative convergence -> PATTERN
         if type_counts.get("narrative_emergence", 0) > 0:
             candidates.append((
-                Mode.SIGNAL,
+                Mode.PATTERN,
                 0.75,
                 "Emerging narrative detected"
             ))
 
-        # Default: WATCH
+        # Default: OBSERVE
         if not candidates:
             candidates.append((
-                Mode.WATCH,
+                Mode.OBSERVE,
                 0.5,
                 "Monitoring market conditions"
             ))
@@ -160,7 +169,7 @@ class ModeSelector:
         """Select mode based on a detected event."""
         event_type = event.event_type if hasattr(event, 'event_type') else str(event.get("event_type", ""))
 
-        mode = self.EVENT_MODE_MAP.get(event_type, Mode.WATCH)
+        mode = self.EVENT_MODE_MAP.get(event_type, Mode.OBSERVE)
 
         title = event.title if hasattr(event, 'title') else event.get("title", "")
         topic = event.topic if hasattr(event, 'topic') else event.get("topic", "")
@@ -174,12 +183,12 @@ class ModeSelector:
             metadata=event.to_dict() if hasattr(event, 'to_dict') else event,
         )
 
-    def select_from_schedule(self, calendar_mode: str = "WATCH") -> ModeDecision:
+    def select_from_schedule(self, calendar_mode: str = "OBSERVE") -> ModeDecision:
         """Select mode based on schedule/calendar."""
         try:
             mode = Mode(calendar_mode)
         except ValueError:
-            mode = Mode.WATCH
+            mode = Mode.OBSERVE
 
         return ModeDecision(
             mode=mode,

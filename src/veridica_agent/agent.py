@@ -177,7 +177,7 @@ class VeridicaAgent:
 
         # Default: idle
         return ModeDecision(
-            mode=Mode.WATCH,
+            mode=Mode.OBSERVE,
             confidence=0.3,
             reason="No significant signals or events",
             trigger="idle",
@@ -192,13 +192,13 @@ class VeridicaAgent:
         research = await self.researcher.research_topic(topic)
 
         # Generate content based on mode
-        if mode == Mode.AUTOPSY:
+        if mode == Mode.ROAST:
             content = await self.generator.generate_roast(
                 project=topic,
                 issue=decision.reason,
                 context="; ".join(research.findings[:3]),
             )
-        elif mode in [Mode.SIGNAL, Mode.RECEIPTS, Mode.VERDICT]:
+        elif mode in [Mode.PATTERN, Mode.INVESTIGATE, Mode.VERDICT]:
             content = await self.generator.generate_analysis(
                 topic=topic,
                 research=research,
@@ -334,7 +334,7 @@ class VeridicaAgent:
     async def generate_thread(
         self,
         topic: str,
-        mode: Mode = Mode.SIGNAL,
+        mode: Mode = Mode.PATTERN,
         tweet_count: int = 5,
     ) -> list[str]:
         """Generate a tweet thread."""

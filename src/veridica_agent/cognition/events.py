@@ -80,6 +80,9 @@ class EventDetector:
         # 6. Trending topics
         events.extend(self._detect_trending(signals))
 
+        # 7. Developer activity spikes
+        events.extend(self._detect_dev_activity(signals))
+
         # Filter by cooldown
         events = self._filter_cooldown(events)
 
@@ -99,7 +102,7 @@ class EventDetector:
     def _detect_security_events(self, signals: list[Signal]) -> list[Event]:
         """Detect hacks, exploits, rugs."""
         events = []
-        security_keywords = ["hack", "exploit", "drain", "rug", "scam", "stolen", "flash loan"]
+        security_keywords = ["hack", "exploit", "drain", "rug", "scam", "stolen", "flash loan", "fraud"]
 
         for signal in signals:
             text = (signal.title + " " + signal.content).lower()
@@ -107,7 +110,7 @@ class EventDetector:
                 events.append(Event(
                     event_type="SECURITY_INCIDENT",
                     urgency=9,
-                    suggested_mode="AUTOPSY",
+                    suggested_mode="ROAST",
                     title=signal.title,
                     description=signal.content,
                     topic=signal.topics[0] if signal.topics else "Security",
@@ -129,7 +132,7 @@ class EventDetector:
                     events.append(Event(
                         event_type="PRICE_ANOMALY",
                         urgency=8 if abs(change) > 30 else 6,
-                        suggested_mode="WATCH",
+                        suggested_mode="OBSERVE",
                         title=signal.title,
                         description=signal.content,
                         topic=signal.metadata.get("symbol", "Unknown"),
@@ -144,7 +147,7 @@ class EventDetector:
                     events.append(Event(
                         event_type="TVL_ANOMALY",
                         urgency=7,
-                        suggested_mode="SIGNAL",
+                        suggested_mode="PATTERN",
                         title=signal.title,
                         description=signal.content,
                         topic=signal.metadata.get("protocol", "Unknown"),
@@ -159,7 +162,7 @@ class EventDetector:
                     events.append(Event(
                         event_type="VOLUME_ANOMALY",
                         urgency=7,
-                        suggested_mode="SIGNAL",
+                        suggested_mode="PATTERN",
                         title=signal.title,
                         description=signal.content,
                         topic=signal.metadata.get("symbol", signal.metadata.get("protocol", "Unknown")),
@@ -186,7 +189,7 @@ class EventDetector:
                 events.append(Event(
                     event_type="NARRATIVE_CONVERGENCE",
                     urgency=6,
-                    suggested_mode="SIGNAL",
+                    suggested_mode="PATTERN",
                     title=f"Narrative converging: {topic}",
                     description=f"{len(topic_sigs)} signals from {len(unique_sources)} sources about {topic}",
                     topic=topic,
@@ -209,7 +212,7 @@ class EventDetector:
                 events.append(Event(
                     event_type="STABLECOIN_DEPEG",
                     urgency=9 if deviation > 0.05 else 7,
-                    suggested_mode="WATCH",
+                    suggested_mode="OBSERVE",
                     title=signal.title,
                     description=signal.content,
                     topic=signal.metadata.get("stablecoin", "Unknown"),
@@ -230,7 +233,7 @@ class EventDetector:
                     events.append(Event(
                         event_type="NEW_PROTOCOL",
                         urgency=6,
-                        suggested_mode="SHIPCHECK",
+                        suggested_mode="BUILD",
                         title=signal.title,
                         description=signal.content,
                         topic=signal.metadata.get("protocol", "Unknown"),
@@ -257,12 +260,39 @@ class EventDetector:
                     events.append(Event(
                         event_type="TRENDING_TOPIC",
                         urgency=5,
-                        suggested_mode="WATCH",
+                        suggested_mode="OBSERVE",
                         title=f"Trending: {topic}",
                         description=f"{topic} is trending across multiple sources",
                         topic=topic,
                         signals=related_signals,
                     ))
+
+        return events
+
+    def _detect_dev_activity(self, signals: list[Signal]) -> list[Event]:
+        """Detect significant developer activity."""
+        events = []
+
+        github_signals = [s for s in signals if s.source == "github"]
+        high_activity = [s for s in github_signals if s.urgency >= 5]
+
+        if high_activity:
+            topics = []
+            for s in high_activity:
+                topics.extend(s.topics)
+            topic_counts = Counter(topics)
+            top_topic = topic_counts.most_common(1)[0] if topic_counts else None
+
+            if top_topic:
+                events.append(Event(
+                    event_type="DEV_ACTIVITY_SPIKE",
+                    urgency=6,
+                    suggested_mode="BUILD",
+                    title=f"Active development: {top_topic[0]}",
+                    description=f"{len(high_activity)} high-activity signals from GitHub",
+                    topic=top_topic[0],
+                    signals=high_activity,
+                ))
 
         return events
 

@@ -146,7 +146,7 @@ async def main():
 
         if args.thread:
             topic = args.topic or "crypto market"
-            tweets = await agent.generate_thread(topic, mode or Mode.SIGNAL, args.thread)
+            tweets = await agent.generate_thread(topic, mode or Mode.PATTERN, args.thread)
             print(f"\n{'='*60}")
             print(f"THREAD: {args.thread} tweets on '{topic}'")
             print(f"{'='*60}\n")

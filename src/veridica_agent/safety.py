@@ -60,7 +60,7 @@ class SafetyFilter:
         if not self.config.require_human_review:
             return False, "Human review disabled"
 
-        critical_modes = ["AUTOPSY", "DEADWEIGHT", "VERDICT"]
+        critical_modes = ["ROAST", "VERDICT"]
         if mode in critical_modes:
             return True, f"Mode {mode} requires human review"
 

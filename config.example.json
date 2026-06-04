@@ -14,11 +14,11 @@
     "content_calendar": {
       "morning": {
         "hour": 9,
-        "mode": "WATCH"
+        "mode": "OBSERVE"
       },
       "midday": {
         "hour": 13,
-        "mode": "SIGNAL"
+        "mode": "PATTERN"
       },
       "evening": {
         "hour": 18,
