@@ -1,0 +1,60 @@
+{
+  "llm": {
+    "base_url": "https://token-plan-sgp.xiaomimimo.com/v1",
+    "model": "mimo-v2.5-pro",
+    "max_tokens": 4096,
+    "temperature": 0.7
+  },
+  "agent": {
+    "name": "Veridica",
+    "autonomous_mode": true,
+    "cycle_interval_minutes": 60,
+    "max_tweets_per_day": 8,
+    "max_research_per_day": 4,
+    "content_calendar": {
+      "morning": {
+        "hour": 9,
+        "mode": "WATCH"
+      },
+      "midday": {
+        "hour": 13,
+        "mode": "SIGNAL"
+      },
+      "evening": {
+        "hour": 18,
+        "mode": "VERDICT"
+      }
+    },
+    "event_urgency_threshold": 7,
+    "idle_poll_interval": 30,
+    "active_poll_interval": 10
+  },
+  "safety": {
+    "require_human_review": true,
+    "draft_directory": "data/tweets",
+    "review_directory": "data/review_queue",
+    "blocked_topics": [
+      "financial advice",
+      "price predictions",
+      "guaranteed returns"
+    ],
+    "rate_limit_window_minutes": 60,
+    "max_posts_per_window": 2
+  },
+  "perception": {
+    "enable_rss": true,
+    "rss_feeds": [
+      "https://cointelegraph.com/rss",
+      "https://coindesk.com/arc/outboundfeeds/rss/",
+      "https://decrypt.co/feed",
+      "https://www.theblock.co/rss.xml"
+    ],
+    "enable_defillama": true,
+    "enable_coingecko": true,
+    "enable_brave_search": false,
+    "brave_search_api_key": "",
+    "enable_github": true,
+    "signal_buffer_size": 200,
+    "poll_timeout": 30
+  }
+}
