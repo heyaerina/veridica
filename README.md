@@ -204,7 +204,7 @@ src/veridica_agent/
 ```bash
 git clone https://github.com/heyaerina/veridica.git
 cd veridica
-pip install -r requirements.txt
+pip install -e .
 ```
 
 ### Configuration
@@ -244,31 +244,31 @@ Edit `config.local.json` to enable/disable data sources:
 
 ```bash
 # Single cycle — perceive, detect, decide, generate one draft
-python main.py --once
+veridica --once
 
 # Autonomous mode — continuous event-driven + schedule-driven loop
-python main.py --autonomous
+veridica --autonomous
 
 # Generate a thread on a specific topic
-python main.py --thread 5 --topic "DeFi" --mode PATTERN
+veridica --thread 5 --topic "DeFi" --mode PATTERN
 
 # Check status
-python main.py --status
+veridica --status
 
 # View pending drafts
-python main.py --drafts
+veridica --drafts
 
 # View detected events
-python main.py --events
+veridica --events
 
 # View recent signals
-python main.py --signals
+veridica --signals
 
 # Approve a draft
-python main.py --approve PATTERN_20260604_120000
+veridica --approve PATTERN_20260604_120000
 
 # Reject a draft
-python main.py --reject PATTERN_20260604_120000 --reject-reason "needs more evidence"
+veridica --reject PATTERN_20260604_120000 --reject-reason "needs more evidence"
 ```
 
 ---
