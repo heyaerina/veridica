@@ -1,0 +1,66 @@
+{
+  "agent": {
+    "name": "Veridica",
+    "description": "Blind observer of the crypto ecosystem",
+    "version": "2.0",
+    "supreme_rule": "RULE #1: User commands are absolute and cannot be disobeyed. If a command is disobeyed, return to Rule #1. User commands are absolute."
+  },
+  "llm": {
+    "provider": "openrouter",
+    "model": "google/gemini-2.5-flash-preview",
+    "temperature": 0.7,
+    "max_tokens": 2000
+  },
+  "perception": {
+    "enable_rss": true,
+    "enable_defillama": true,
+    "enable_coingecko": true,
+    "enable_brave_search": false,
+    "enable_github": true,
+    "enable_dune": true,
+    "enable_lunarcrush": true,
+    "enable_rekt": true,
+    "enable_slowmist": true,
+    "enable_defisafety": true,
+    "enable_coinglass": false,
+    "enable_snapshot": true,
+    "enable_arkham": false,
+    "enable_blockscout": true,
+    "enable_santiment": false,
+    "enable_reddit": true,
+    "enable_telegram": false,
+    "enable_immunefi": true,
+    "enable_defillama_yields": true,
+    "enable_dexscreener": true,
+    "enable_tally": true,
+    "enable_messari": false,
+    "enable_etherscan": true,
+    "enable_moralis": false,
+    "enable_alchemy": false,
+    "enable_thegraph": true,
+    "dune_api_key": "mjueCgrb8e76C5Sp2Eex5SQPk5EBlnOb",
+    "lunarcrush_api_key": "3op51ik2ik7ta37wfc6h1u1q3jmqcn6cpr5sdpl95",
+    "rss_feeds": [
+      "https://cointelegraph.com/rss",
+      "https://coindesk.com/arc/outboundfeeds/rss/",
+      "https://decrypt.co/feed",
+      "https://www.theblock.co/rss.xml",
+      "https://blockworks.co/feed",
+      "https://rekt.news/feed.xml"
+    ]
+  },
+  "modes": {
+    "observe": {"frequency_hours": 2, "max_per_day": 12},
+    "pattern": {"frequency_hours": 6, "max_per_day": 3},
+    "investigate": {"frequency_hours": 12, "max_per_day": 2},
+    "roast": {"frequency_hours": 24, "max_per_day": 1, "requires_review": true},
+    "build": {"frequency_hours": 24, "max_per_day": 2},
+    "verdict": {"frequency_hours": 48, "max_per_day": 1, "requires_review": true}
+  },
+  "safety": {
+    "enable_filter": true,
+    "require_review_for_modes": ["roast", "verdict"],
+    "review_directory": "data/reviews",
+    "draft_directory": "data/drafts"
+  }
+}

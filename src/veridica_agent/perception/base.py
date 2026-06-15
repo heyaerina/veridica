@@ -1,7 +1,7 @@
 """Base classes for the perception layer."""
-
 from __future__ import annotations
 
+import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -10,111 +10,179 @@ from typing import Any
 
 
 class SignalType(str, Enum):
-    """Types of signals Veridica can perceive."""
+    """Types of signals the perception layer can emit."""
 
-    # News & content
-    NEWS = "news"
-    ANALYSIS = "analysis"
-    RUMOR = "rumor"
-
-    # On-chain
-    TVL_CHANGE = "tvl_change"
+    # Existing types
+    PRICE_ANOMALY = "price_anomaly"
     VOLUME_SPIKE = "volume_spike"
-    WHALE_MOVEMENT = "whale_movement"
-    NEW_PROTOCOL = "new_protocol"
-    DEPEG = "depeg"
-    BRIDGE_FLOW = "bridge_flow"
-
-    # Market
-    PRICE_MOVEMENT = "price_movement"
-    TRENDING = "trending"
-    MARKET_CAP_SHIFT = "market_cap_shift"
-
-    # Social
-    MENTION = "mention"
-    SENTIMENT_SHIFT = "sentiment_shift"
     NARRATIVE_EMERGENCE = "narrative_emergence"
+    WHALE_MOVEMENT = "whale_movement"
+    SECURITY_INCIDENT = "security_incident"
+    GOVERNANCE_PROPOSAL = "governance_proposal"
+    SENTIMENT_SHIFT = "sentiment_shift"
+    NEWS_EVENT = "news_event"
+    TECHNICAL_SIGNAL = "technical_signal"
 
-    # Developer
-    GITHUB_ACTIVITY = "github_activity"
-    CONTRACT_DEPLOY = "contract_deploy"
-    TRENDING_REPO = "trending_repo"
+    # New types — Security
+    EXPLOIT = "exploit"
+    RUG_PULL = "rug_pull"
+    AUDIT_REPORT = "audit_report"
+    VULNERABILITY = "vulnerability"
+    SECURITY_SCORE = "security_score"
 
-    # Meta
-    UNKNOWN = "unknown"
+    # New types — Governance
+    DAO_PROPOSAL = "dao_proposal"
+    VOTE_STARTING = "vote_starting"
+    VOTE_ENDING = "vote_ending"
+    GOVERNANCE_ATTACK = "governance_attack"
+
+    # New types — Derivatives
+    FUNDING_RATE = "funding_rate"
+    OPEN_INTEREST = "open_interest"
+    LIQUIDATION = "liquidation"
+    LONG_SHORT_RATIO = "long_short_ratio"
+
+    # New types — On-chain
+    LARGE_TRANSFER = "large_transfer"
+    PROTOCOL_SCORE = "protocol_score"
 
 
 @dataclass
 class Signal:
-    """A single intelligence signal from any source."""
+    """A signal emitted by a perception source."""
 
-    source: str              # "rss", "defillama", "coingecko", "brave", etc.
+    source: str
     signal_type: SignalType
-    title: str               # Short description
-    content: str             # Full content / summary
-    url: str = ""            # Source URL
-    topics: list[str] = field(default_factory=list)   # Extracted topics
-    metadata: dict[str, Any] = field(default_factory=dict)  # Source-specific data
-    confidence: float = 0.5  # 0.0 - 1.0
-    urgency: int = 5         # 1-10, 10 = act now
-    timestamp: datetime = field(default_factory=lambda: datetime.now().replace(tzinfo=None))
-
-    def to_dict(self) -> dict:
-        return {
-            "source": self.source,
-            "signal_type": self.signal_type.value,
-            "title": self.title,
-            "content": self.content,
-            "url": self.url,
-            "topics": self.topics,
-            "metadata": self.metadata,
-            "confidence": self.confidence,
-            "urgency": self.urgency,
-            "timestamp": self.timestamp.isoformat(),
-        }
+    title: str
+    content: str
+    url: str = ""
+    topics: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
+    confidence: float = 0.5
+    urgency: int = 5  # 1-10
+    timestamp: datetime = field(default_factory=datetime.utcnow)
 
 
 @dataclass
 class Event:
-    """A detected event that may require Veridica's attention."""
+    """A detected event from signal analysis."""
 
-    event_type: str          # "TVL_ANOMALY", "VOLUME_SPIKE", "NARRATIVE", etc.
-    urgency: int             # 1-10
-    suggested_mode: str      # Mode name suggestion
-    title: str               # Short title
-    description: str         # What happened
-    signals: list[Signal] = field(default_factory=list)  # Signals that triggered this
-    topic: str = ""          # Primary topic
+    event_type: str
+    description: str
+    urgency: int  # 1-10
+    signals: list[Signal] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
+    timestamp: datetime = field(default_factory=datetime.utcnow)
 
-    def to_dict(self) -> dict:
+
+class RateLimitTracker:
+    """Track API rate limits per source with sliding windows.
+
+    Supports per-minute and per-day limits. Sources with limits are
+    prioritized — only skipped when limit is actually exhausted.
+    """
+
+    def __init__(
+        self,
+        source_name: str,
+        requests_per_minute: int = 0,
+        requests_per_day: int = 0,
+    ):
+        self.source_name = source_name
+        self.requests_per_minute = requests_per_minute
+        self.requests_per_day = requests_per_day
+        self._minute_timestamps: list[float] = []
+        self._day_timestamps: list[float] = []
+        self._minute_limited = False
+        self._day_limited = False
+
+    def can_request(self) -> bool:
+        """Check if a request is allowed. Returns True if OK."""
+        now = time.time()
+
+        # Clean sliding windows
+        self._minute_timestamps = [
+            t for t in self._minute_timestamps if now - t < 60
+        ]
+        self._day_timestamps = [
+            t for t in self._day_timestamps if now - t < 86400
+        ]
+
+        # Check minute limit (skip if no limit configured)
+        if self.requests_per_minute > 0:
+            if len(self._minute_timestamps) >= self.requests_per_minute:
+                if not self._minute_limited:
+                    self._minute_limited = True
+                return False
+
+        # Check day limit (skip if no limit configured)
+        if self.requests_per_day > 0:
+            if len(self._day_timestamps) >= self.requests_per_day:
+                if not self._day_limited:
+                    self._day_limited = True
+                return False
+
+        self._minute_limited = False
+        return True
+
+    def record(self):
+        """Record a successful request."""
+        now = time.time()
+        self._minute_timestamps.append(now)
+        self._day_timestamps.append(now)
+
+    def get_status(self) -> dict:
+        """Return current rate limit status."""
+        now = time.time()
+        minute_used = len([
+            t for t in self._minute_timestamps if now - t < 60
+        ])
+        day_used = len([
+            t for t in self._day_timestamps if now - t < 86400
+        ])
         return {
-            "event_type": self.event_type,
-            "urgency": self.urgency,
-            "suggested_mode": self.suggested_mode,
-            "title": self.title,
-            "description": self.description,
-            "topic": self.topic,
-            "signal_count": len(self.signals),
-            "metadata": self.metadata,
+            "source": self.source_name,
+            "minute_used": minute_used,
+            "minute_limit": self.requests_per_minute,
+            "minute_remaining": max(0, self.requests_per_minute - minute_used) if self.requests_per_minute > 0 else -1,
+            "day_used": day_used,
+            "day_limit": self.requests_per_day,
+            "day_remaining": max(0, self.requests_per_day - day_used) if self.requests_per_day > 0 else -1,
+            "minute_limited": self._minute_limited,
+            "day_limited": self._day_limited,
         }
 
 
 class SignalSource(ABC):
-    """Base class for all signal sources."""
+    """Base class for signal sources.
 
-    name: str = "base"
+    Subclasses should set class attributes:
+        name: str — unique source identifier
+        RATE_LIMIT_PER_MINUTE: int — 0 = no limit
+        RATE_LIMIT_PER_DAY: int — 0 = no limit
+    """
+
+    name: str = "unknown"
     enabled: bool = True
+    RATE_LIMIT_PER_MINUTE: int = 0
+    RATE_LIMIT_PER_DAY: int = 0
+
+    def __init__(self) -> None:
+        self.rate_tracker = RateLimitTracker(
+            source_name=self.name,
+            requests_per_minute=self.RATE_LIMIT_PER_MINUTE,
+            requests_per_day=self.RATE_LIMIT_PER_DAY,
+        )
 
     @abstractmethod
     async def poll(self) -> list[Signal]:
-        """Fetch signals from this source."""
+        """Poll for new signals."""
         ...
 
-    @abstractmethod
-    async def close(self):
+    async def close(self) -> None:
         """Clean up resources."""
-        ...
+        pass
 
-    def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} enabled={self.enabled}>"
+    def get_rate_limit_status(self) -> dict:
+        """Return rate limit status for this source."""
+        return self.rate_tracker.get_status()
