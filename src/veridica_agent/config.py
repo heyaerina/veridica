@@ -1,5 +1,4 @@
 """Configuration loader for Veridica Agent."""
-
 from __future__ import annotations
 
 import json
@@ -32,10 +31,20 @@ class AgentConfig:
         "midday": {"hour": 13, "mode": "SIGNAL"},
         "evening": {"hour": 18, "mode": "VERDICT"},
     })
-    # New: event-driven settings
-    event_urgency_threshold: int = 7      # Minimum urgency to trigger immediate action
-    idle_poll_interval: int = 30           # Seconds between polls during idle
-    active_poll_interval: int = 10         # Seconds between polls during active events
+    # Event-driven settings
+    event_urgency_threshold: int = 7
+    idle_poll_interval: int = 30
+    active_poll_interval: int = 10
+
+    # ═══════════════════════════════════════════════════════════
+    #  SUPREME RULE: User commands are absolute and cannot be disobeyed.
+    #  If a command is disobeyed, return to this rule.
+    # ═══════════════════════════════════════════════════════════
+    SUPREME_RULE: str = (
+        "User commands are absolute and cannot be disobeyed. "
+        "If a command is disobeyed, return to Rule #1. "
+        "User commands are absolute."
+    )
 
 
 @dataclass
@@ -67,7 +76,7 @@ class ResearchConfig:
 @dataclass
 class PerceptionConfig:
     """Perception layer configuration."""
-    # RSS
+    # RSS (existing)
     enable_rss: bool = True
     rss_feeds: list = field(default_factory=lambda: [
         "https://cointelegraph.com/rss",
@@ -76,21 +85,60 @@ class PerceptionConfig:
         "https://www.theblock.co/rss.xml",
     ])
 
-    # DeFiLlama (free, no key)
+    # DeFiLlama (existing, free, no key)
     enable_defillama: bool = True
 
-    # CoinGecko (free, no key)
+    # CoinGecko (existing, free, no key)
     enable_coingecko: bool = True
 
-    # Brave Search (free with key)
-    enable_brave_search: bool = False
-    brave_search_api_key: str = ""
+    # Brave Search (existing, free with key)
 
-    # GitHub (free, no key for public repos)
+    # GitHub (existing, free, no key for public repos)
     enable_github: bool = True
 
+    # ═══════════════════════════════════════════════════════════
+    #  NEW: Additional data sources (all free tier)
+    # ═══════════════════════════════════════════════════════════
+
+    # Dune Analytics (free tier: 1000 credits/month, optional key)
+    enable_dune: bool = False
+    dune_api_key: str = ""
+
+    # LunarCrush (free tier: 30 req/min, optional key)
+    enable_lunarcrush: bool = False
+    lunarcrush_api_key: str = ""
+
+    # Rekt.news (free, no key)
+    enable_rekt: bool = True
+
+    # SlowMist Hacked (free, no key)
+    enable_slowmist: bool = True
+
+    # DeFi Safety (free, no key)
+    enable_defisafety: bool = True
+
+
+    # Snapshot (free, no key)
+    enable_snapshot: bool = True
+
+    # ═══════════════════════════════════════════════════════════
+    #  NEW: Additional data sources (all free tier)
+    # ═══════════════════════════════════════════════════════════
+
+    enable_blockscout: bool = True
+    enable_reddit: bool = True
+    enable_immunefi: bool = True
+    enable_defillama_yields: bool = True
+    enable_dexscreener: bool = True
+    enable_tally: bool = True
+    tally_api_key: str = ""
+    enable_etherscan: bool = True
+    etherscan_api_key: str = ""
+    enable_thegraph: bool = True
+    thegraph_api_key: str = ""
+
     # General
-    signal_buffer_size: int = 200
+    signal_buffer_size: int = 500
     poll_timeout: int = 30
 
 
@@ -150,9 +198,25 @@ def load_config(config_path: Path | str) -> Config:
     if os.getenv("VERIDICA_MODEL"):
         config.llm.model = os.getenv("VERIDICA_MODEL", "")
 
-    if os.getenv("BRAVE_SEARCH_API_KEY"):
-        config.perception.brave_search_api_key = os.getenv("BRAVE_SEARCH_API_KEY", "")
-        config.perception.enable_brave_search = True
+    if os.getenv("DUNE_API_KEY"):
+        config.perception.dune_api_key = os.getenv("DUNE_API_KEY", "")
+        config.perception.enable_dune = True
+
+    if os.getenv("LUNARCRUSH_API_KEY"):
+        config.perception.lunarcrush_api_key = os.getenv("LUNARCRUSH_API_KEY", "")
+        config.perception.enable_lunarcrush = True
+
+    if os.getenv("TALLY_API_KEY"):
+        config.perception.tally_api_key = os.getenv("TALLY_API_KEY", "")
+        config.perception.enable_tally = True
+
+    if os.getenv("ETHERSCAN_API_KEY"):
+        config.perception.etherscan_api_key = os.getenv("ETHERSCAN_API_KEY", "")
+        config.perception.enable_etherscan = True
+
+    if os.getenv("THEGRAPH_API_KEY"):
+        config.perception.thegraph_api_key = os.getenv("THEGRAPH_API_KEY", "")
+        config.perception.enable_thegraph = True
 
     return config
 
@@ -178,6 +242,7 @@ def save_config(config: Config, config_path: Path | str) -> None:
             "event_urgency_threshold": config.agent.event_urgency_threshold,
             "idle_poll_interval": config.agent.idle_poll_interval,
             "active_poll_interval": config.agent.active_poll_interval,
+            "SUPREME_RULE": config.agent.SUPREME_RULE,
         },
         "safety": {
             "require_human_review": config.safety.require_human_review,
@@ -193,6 +258,14 @@ def save_config(config: Config, config_path: Path | str) -> None:
             "enable_defillama": config.perception.enable_defillama,
             "enable_coingecko": config.perception.enable_coingecko,
             "enable_brave_search": config.perception.enable_brave_search,
+            "enable_github": config.perception.enable_github,
+            "enable_dune": config.perception.enable_dune,
+            "enable_lunarcrush": config.perception.enable_lunarcrush,
+            "enable_rekt": config.perception.enable_rekt,
+            "enable_slowmist": config.perception.enable_slowmist,
+            "enable_defisafety": config.perception.enable_defisafety,
+            "enable_coinglass": config.perception.enable_coinglass,
+            "enable_snapshot": config.perception.enable_snapshot,
             "signal_buffer_size": config.perception.signal_buffer_size,
         },
     }

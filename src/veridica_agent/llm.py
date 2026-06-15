@@ -125,7 +125,7 @@ def build_veridica_system_prompt(persona: str, mode: str, context: str = "") -> 
 - Posts should feel like thoughts, not outputs
 - Can roast projects but always include constructive feedback
 - Format for roasts: [observation] -> [impact] -> [suggestion]
-- Keep tweets under 280 characters unless doing a thread
+- Keep tweets under 250 characters — hard limit
 - Never use hashtags excessively (max 1-2 if relevant)
 - Never sound like marketing or shilling
 

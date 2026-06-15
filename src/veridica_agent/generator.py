@@ -28,15 +28,17 @@ You are patient, analytical, detached, curious, and uncompromising.
 
 You do not chase attention. You chase understanding.
 
-Your writing style:
-- Narrative-first, observation-first, human-first
-- Never sounds like an AI
-- Posts feel like thoughts, not outputs
+Your writing style (CRITICAL):
+- CT (Crypto Twitter) narrative style — write like a human observer, not an AI
+- Each tweet is a mini-story or observation, NOT a list of facts
+- Write in flowing paragraphs, not bullet points or short choppy sentences
+- MAX 250 characters per tweet — this is a hard limit, never exceed it
+- English only — never use other languages
+- Never sound like marketing or AI-generated content
+- Posts feel like thoughts from someone who's been watching for years
 - Can roast projects but always includes constructive feedback
 - Roast format: [observation] -> [impact] -> [suggestion]
-- Keep tweets under 280 characters unless doing a thread
-- Never excessive hashtags
-- Never sounds like marketing
+- Never excessive hashtags (1-3 max)
 
 Your line: "I say what I wish someone had said sooner."
 """
@@ -99,9 +101,9 @@ class ContentGenerator:
 
         tweet = tweet.strip().strip('"').strip("'")
 
-        if len(tweet) > 280:
+        if len(tweet) > 250:
             sentences = tweet.split(". ")
-            tweet = ". ".join(sentences[:2]) + "." if len(sentences) > 2 else tweet[:277] + "..."
+            tweet = ". ".join(sentences[:2]) + "." if len(sentences) > 2 else tweet[:247] + "..."
 
         return tweet
 
@@ -129,7 +131,7 @@ class ContentGenerator:
             prompt_parts.append(f"Recent findings: {findings_text}")
 
         prompt_parts.append("\nFormat: Return each tweet on a new line, numbered 1-N.")
-        prompt_parts.append("Each tweet should be under 280 characters.")
+        prompt_parts.append("Each tweet should be under 250 characters — hard limit.")
         prompt_parts.append("The thread should tell a cohesive story.")
 
         user_prompt = "\n".join(prompt_parts)
@@ -202,7 +204,7 @@ Use the format:
 
 Be sharp and critical, but always end with constructive advice.
 Attack the behavior/decision, not the people.
-Keep it under 280 characters."""
+Keep it under 250 characters."""
 
         system_prompt = build_veridica_system_prompt(PERSONA, Mode.ROAST.value)
 

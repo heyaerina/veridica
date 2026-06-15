@@ -1,5 +1,10 @@
-"""Signal aggregator — combines all perception sources."""
+"""Signal aggregator — combines all perception sources.
 
+Rate limit policy:
+- Sources WITH rate limits are PRIORITIZED (not skipped).
+- A source is only skipped when its limit is actually exhausted.
+- This reduces wasted API calls while maximizing data freshness.
+"""
 from __future__ import annotations
 
 import asyncio
@@ -31,12 +36,26 @@ class SignalAggregator:
         self.sources = [s for s in self.sources if s.name != name]
 
     async def poll_all(self) -> list[Signal]:
-        """Poll all registered sources concurrently."""
+        """Poll all registered sources concurrently.
+
+        Rate-limited sources are still polled — they self-check limits
+        and return empty if exhausted. This keeps the flow simple.
+        """
         enabled_sources = [s for s in self.sources if s.enabled]
 
         if not enabled_sources:
             logger.warning("No enabled signal sources")
             return []
+
+        # Log rate limit status before polling
+        for source in enabled_sources:
+            status = source.get_rate_limit_status()
+            if status.get("minute_limited") or status.get("day_limited"):
+                logger.info(
+                    f"  {source.name}: RATE LIMITED "
+                    f"(minute: {status['minute_remaining']}/{status['minute_limit']}, "
+                    f"day: {status['day_remaining']}/{status['day_limit']})"
+                )
 
         logger.info(f"Polling {len(enabled_sources)} signal sources...")
 
@@ -68,9 +87,17 @@ class SignalAggregator:
         return deduplicated
 
     async def _safe_poll(self, source: SignalSource) -> list[Signal]:
-        """Poll a source with error handling."""
+        """Poll a source with error handling and rate limit check."""
+        # Check rate limit before polling (source also self-checks)
+        if not source.rate_tracker.can_request():
+            logger.debug(f"Source {source.name}: skipped (rate limited)")
+            return []
+
         try:
-            return await source.poll()
+            signals = await source.poll()
+            # Record successful request
+            source.rate_tracker.record()
+            return signals
         except Exception as e:
             logger.warning(f"Source {source.name} failed: {e}")
             return []
@@ -106,7 +133,7 @@ class SignalAggregator:
         ][:limit]
 
     def get_stats(self) -> dict[str, Any]:
-        """Get aggregator statistics."""
+        """Get aggregator statistics including rate limit status."""
         source_counts = {}
         for signal in self.signal_buffer:
             source_counts[signal.source] = source_counts.get(signal.source, 0) + 1
@@ -115,6 +142,11 @@ class SignalAggregator:
         for signal in self.signal_buffer:
             type_counts[signal.signal_type.value] = type_counts.get(signal.signal_type.value, 0) + 1
 
+        # Rate limit status per source
+        rate_limits = {}
+        for source in self.sources:
+            rate_limits[source.name] = source.get_rate_limit_status()
+
         return {
             "sources_registered": len(self.sources),
             "sources_enabled": len([s for s in self.sources if s.enabled]),
@@ -122,6 +154,7 @@ class SignalAggregator:
             "last_poll": self.last_poll.isoformat() if self.last_poll else None,
             "signals_by_source": source_counts,
             "signals_by_type": type_counts,
+            "rate_limits": rate_limits,
         }
 
     async def close(self):
