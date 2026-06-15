@@ -1,0 +1,19 @@
+{
+  "id": "AUTOPSY_20260604_183222",
+  "content": "Coinbase freezing $3M in fraud-linked funds while launching SpaceX perps is a credibility crisis. Impact: Shows a platform prioritizing hype over fundamental security. Suggestion: Build your regulatory moat before building speculative derivatives.",
+  "mode": "AUTOPSY",
+  "topic": "BASE",
+  "trigger": "event",
+  "event_type": "SECURITY_INCIDENT",
+  "confidence": 0.9,
+  "status": "pending_review",
+  "generated_at": "2026-06-04T18:32:22.351485",
+  "reviewed_at": null,
+  "rejection_reason": null,
+  "metadata": {
+    "research_sentiment": "positive",
+    "research_findings": [
+      "Coinbase Launches Pre-IPO Perps, Starting with Elon Musk&#39;s SpaceX"
+    ]
+  }
+}

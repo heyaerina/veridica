@@ -1,0 +1,20 @@
+{
+  "id": "ROAST_20260604_201011",
+  "content": "[observation] -> Declaring DeFi \"74% safer\" while major exploits still happen weekly feels like a victory lap mid-marathon. -> [impact] -> Breeds dangerous complacency; teams and users relax vigilance. -> [suggestion] -> Shift the metric from \"losses down\" to \"attacks prevented.\" Build fortresses, not just count the holes.",
+  "mode": "ROAST",
+  "topic": "DeFi",
+  "trigger": "event",
+  "event_type": "SECURITY_INCIDENT",
+  "confidence": 0.9,
+  "status": "pending_review",
+  "generated_at": "2026-06-04T20:10:11.491921",
+  "reviewed_at": null,
+  "rejection_reason": null,
+  "metadata": {
+    "research_sentiment": "negative",
+    "research_findings": [
+      "Bitcoin price just tagged 200-week trend line that defined 2022 bear market",
+      "Immunefi says DeFi is &#8216;getting safer&#8217; as exploit losses fall 74% from 2022 peak amid AI-driven security arms race"
+    ]
+  }
+}
