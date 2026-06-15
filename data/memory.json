@@ -1,0 +1,47 @@
+{
+  "tweets": [
+    {
+      "id": "tweet_20260604_183222",
+      "content": "Coinbase freezing $3M in fraud-linked funds while launching SpaceX perps is a credibility crisis. Impact: Shows a platform prioritizing hype over fundamental security. Suggestion: Build your regulatory moat before building speculative derivatives.",
+      "mode": "AUTOPSY",
+      "topic": "BASE",
+      "created_at": "2026-06-04T18:32:22.359076",
+      "posted": false,
+      "posted_at": null,
+      "engagement_score": null
+    },
+    {
+      "id": "tweet_20260604_183530",
+      "content": "When your L2 launches with a legacy exchange's prestige, but that same exchange keeps freezing millions from fraud rings while launching hype perps... The \"trustless\" narrative starts feeling pretty trust-dependent.\n\nImpact: It poisons the well. Builders and users question if BASE's neutrality is just Coinbase's reputation laundering.\n\nSuggestion: More aggressive, public chain transparency reports. Prove the decentralization isn't just branding.",
+      "mode": "AUTOPSY",
+      "topic": "BASE",
+      "created_at": "2026-06-04T18:35:30.626385",
+      "posted": false,
+      "posted_at": null,
+      "engagement_score": null
+    },
+    {
+      "id": "tweet_20260604_201011",
+      "content": "[observation] -> Declaring DeFi \"74% safer\" while major exploits still happen weekly feels like a victory lap mid-marathon. -> [impact] -> Breeds dangerous complacency; teams and users relax vigilance. -> [suggestion] -> Shift the metric from \"losses down\" to \"attacks prevented.\" Build fortresses, not just count the holes.",
+      "mode": "ROAST",
+      "topic": "DeFi",
+      "created_at": "2026-06-04T20:10:11.510255",
+      "posted": false,
+      "posted_at": null,
+      "engagement_score": null
+    }
+  ],
+  "projects": [],
+  "recent_modes": [
+    "AUTOPSY",
+    "AUTOPSY",
+    "ROAST"
+  ],
+  "topics_covered": [
+    "BASE",
+    "BASE",
+    "DeFi"
+  ],
+  "signals": [],
+  "last_updated": "2026-06-04T20:10:11.512379"
+}

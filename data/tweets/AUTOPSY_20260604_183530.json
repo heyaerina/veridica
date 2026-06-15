@@ -1,0 +1,19 @@
+{
+  "id": "AUTOPSY_20260604_183530",
+  "content": "When your L2 launches with a legacy exchange's prestige, but that same exchange keeps freezing millions from fraud rings while launching hype perps... The \"trustless\" narrative starts feeling pretty trust-dependent.\n\nImpact: It poisons the well. Builders and users question if BASE's neutrality is just Coinbase's reputation laundering.\n\nSuggestion: More aggressive, public chain transparency reports. Prove the decentralization isn't just branding.",
+  "mode": "AUTOPSY",
+  "topic": "BASE",
+  "trigger": "event",
+  "event_type": "SECURITY_INCIDENT",
+  "confidence": 0.9,
+  "status": "pending_review",
+  "generated_at": "2026-06-04T18:35:30.622105",
+  "reviewed_at": null,
+  "rejection_reason": null,
+  "metadata": {
+    "research_sentiment": "positive",
+    "research_findings": [
+      "Coinbase Launches Pre-IPO Perps, Starting with Elon Musk&#39;s SpaceX"
+    ]
+  }
+}
